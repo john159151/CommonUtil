@@ -27,8 +27,10 @@ public class FileIO {
 	        	String x = "";
 	        	for (int j=0; j<X.getColumnDimension(); j++) {
 	        		out.write(String.format("%.9f", X.get(i, j))+" ");
+	        		out.flush();
 	        	}
 	        	out.write("\r\n");
+		        out.flush();
 	        }
 	        out.flush();
 			out.close();
@@ -47,6 +49,7 @@ public class FileIO {
 	        for(Iterator it = words.iterator(); it.hasNext();) {
 	            String now = it.next().toString();
 	            out.write(now+"\r\n");
+	            out.flush();
 	        }
 	        out.flush();
 			out.close();
@@ -64,6 +67,7 @@ public class FileIO {
 	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);
 	        for (int i=0; i<info.size(); i++) {
 	        	out.write(info.get(i).toString()+"\r\n");
+	        	out.flush();
 	        }
 	        out.flush();
 			out.close();
@@ -91,6 +95,7 @@ public class FileIO {
             	for (int i=0; i<tempWord.length; i++) {
             		if (!tempWord[i].equals("")) {
             			out.write(wordsHashMap.get(tempWord[i]).toString()+":"+tfidfInEachDoc.get(i).toString()+" ");
+            			out.flush();
             		}
             	}
 	        	out.write("\r\n");
@@ -170,6 +175,7 @@ public class FileIO {
             					out.write(" ");
             				}
             				out.write(tempWord[i]);
+            				out.flush();
             			}
             		}
             	}
