@@ -14,9 +14,11 @@ import java.util.Vector;
 
 import Jama.Matrix;
 
-
+/**
+ * Created by jianying.lin@foxmail.com on 2016/10/24.
+ */
 public class FileIO {
-	public boolean fileWrite(String filePath, Matrix X) {
+	public static boolean fileWrite(String filePath, Matrix X) {
 		try {			
 	        File writename = new File(filePath); 
 	        writename.createNewFile(); 
@@ -37,7 +39,7 @@ public class FileIO {
 		}
 	}
 	
-	public boolean fileWrite(String filePath, TreeSet words) {
+	public static boolean fileWrite(String filePath, TreeSet words) {
 		try {			
 	        File writename = new File(filePath); 
 	        writename.createNewFile();
@@ -55,7 +57,7 @@ public class FileIO {
 		}
 	}
 	
-	public boolean fileWrite(String filePath, ArrayList info) {
+	public static boolean fileWrite(String filePath, ArrayList info) {
 		try {			
 	        File writename = new File(filePath); 
 	        writename.createNewFile();
@@ -72,7 +74,7 @@ public class FileIO {
 		}
 	}
 	
-	public void fileWriteTfidfSparse(String filePath, String outputFilePath, ArrayList tfidf, HashMap wordsHashMap) { //稀疏表示
+	public static void fileWriteTfidfSparse(String filePath, String outputFilePath, ArrayList tfidf, HashMap wordsHashMap) { //稀疏表示
 		File file = new File(filePath);
         BufferedReader reader = null;
 		try {
@@ -111,7 +113,7 @@ public class FileIO {
         }
 	}
 	
-	public void fileWriteTfidfNotSparse(String filePath, String outputFilePath, ArrayList tfidf, HashMap wordsHashMap, TreeSet words) { //输出term*doc的非稀疏表示矩阵
+	public static void fileWriteTfidfNotSparse(String filePath, String outputFilePath, ArrayList tfidf, HashMap wordsHashMap, TreeSet words) { //输出term*doc的非稀疏表示矩阵
 		ArrayList<String> fileInfo = fileRead(filePath);
 		double[][] tfidfArray = new double[words.size()][fileInfo.size()];		
 		for (int i=0; i<words.size(); i++) {
@@ -140,7 +142,7 @@ public class FileIO {
 		fileWrite(outputFilePath, tfidfStr);
 	}
 	
-	public void fileWrite(String filePath, String filterFilePath, ArrayList idf, double idfMin, double idfMax) {
+	public static void fileWrite(String filePath, String filterFilePath, ArrayList idf, double idfMin, double idfMax) {
 		int docNum = readLinesNumFile(filePath);
 		File file = new File(filePath);
         BufferedReader reader = null;
@@ -191,12 +193,12 @@ public class FileIO {
         }
 	}
 	
-	public boolean checkFileExist(String filePath) {
+	public static boolean checkFileExist(String filePath) {
 		File writename = new File(filePath); 
 		return writename.exists();
 	}
 	
-	public Matrix readMatrixFile(String filePath, int k, int n) {
+	public static Matrix readMatrixFile(String filePath, int k, int n) {
 		File file = new File(filePath);
         BufferedReader reader = null;
         try {
@@ -233,7 +235,7 @@ public class FileIO {
         return null;        
 	}
 	
-	public TreeSet readWordsFile(String filePath) {
+	public static TreeSet readWordsFile(String filePath) {
 		File file = new File(filePath);
         BufferedReader reader = null;
         try {
@@ -262,7 +264,7 @@ public class FileIO {
         return null;        
 	}
 	
-	public TreeSet readResultFile(String filePath) {
+	public static TreeSet readResultFile(String filePath) {
 		File file = new File(filePath);
         BufferedReader reader = null;
         try {
@@ -296,7 +298,7 @@ public class FileIO {
         return null;        
 	}
 	
-	public TreeSet readResultFileWithIntegerTerms(String filePath) {
+	public static TreeSet readResultFileWithIntegerTerms(String filePath) {
 		File file = new File(filePath);
         BufferedReader reader = null;
         try {
@@ -330,7 +332,7 @@ public class FileIO {
         return null;        
 	}
 	
-	public ArrayList<HashSet<String>> readWordSetEachDocument(String filePath) {
+	public static ArrayList<HashSet<String>> readWordSetEachDocument(String filePath) {
 		File file = new File(filePath);
         BufferedReader reader = null;
         try {
@@ -365,7 +367,7 @@ public class FileIO {
         return null;        
 	}
 	
-	public int readLinesNumFile(String filePath) {
+	public static int readLinesNumFile(String filePath) {
 		File file = new File(filePath);
         BufferedReader reader = null;
         try {
@@ -391,7 +393,7 @@ public class FileIO {
         return 0;
 	}
 	
-	public ArrayList<String> fileRead(String filePath) {
+	public static ArrayList<String> fileRead(String filePath) {
 		File file = new File(filePath);
         BufferedReader reader = null;
         try {

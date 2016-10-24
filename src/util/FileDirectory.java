@@ -5,6 +5,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+/**
+ * Created by jianying.lin@foxmail.com on 2016/10/24.
+ */
 public class FileDirectory {
 	
 	/*
