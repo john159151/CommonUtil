@@ -1,0 +1,421 @@
+package util;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.TreeSet;
+import java.util.Vector;
+
+import Jama.Matrix;
+
+
+public class FileIO {
+	public boolean fileWrite(String filePath, Matrix X) {
+		try {			
+	        File writename = new File(filePath); 
+	        writename.createNewFile(); 
+	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);  
+	        for (int i=0; i<X.getRowDimension(); i++) {
+	        	String x = "";
+	        	for (int j=0; j<X.getColumnDimension(); j++) {
+	        		out.write(String.format("%.9f", X.get(i, j))+" ");
+	        	}
+	        	out.write("\r\n");
+	        }
+	        out.flush();
+			out.close();
+			return true;
+		} catch (Exception e) {
+			// TODO: handle exception
+			return false;
+		}
+	}
+	
+	public boolean fileWrite(String filePath, TreeSet words) {
+		try {			
+	        File writename = new File(filePath); 
+	        writename.createNewFile();
+	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768); 
+	        for(Iterator it = words.iterator(); it.hasNext();) {
+	            String now = it.next().toString();
+	            out.write(now+"\r\n");
+	        }
+	        out.flush();
+			out.close();
+			return true;
+		} catch (Exception e) {
+			// TODO: handle exception
+			return false;
+		}
+	}
+	
+	public boolean fileWrite(String filePath, ArrayList info) {
+		try {			
+	        File writename = new File(filePath); 
+	        writename.createNewFile();
+	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);
+	        for (int i=0; i<info.size(); i++) {
+	        	out.write(info.get(i).toString()+"\r\n");
+	        }
+	        out.flush();
+			out.close();
+			return true;
+		} catch (Exception e) {
+			// TODO: handle exception
+			return false;
+		}
+	}
+	
+	public void fileWriteTfidfSparse(String filePath, String outputFilePath, ArrayList tfidf, HashMap wordsHashMap) { //稀疏表示
+		File file = new File(filePath);
+        BufferedReader reader = null;
+		try {
+			File writename = new File(outputFilePath);
+	        writename.createNewFile();
+	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);
+
+	        reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	ArrayList tfidfInEachDoc = (ArrayList<Double>)tfidf.get(line);
+            	String[] tempWord = tempString.split(" ");
+            	for (int i=0; i<tempWord.length; i++) {
+            		if (!tempWord[i].equals("")) {
+            			out.write(wordsHashMap.get(tempWord[i]).toString()+":"+tfidfInEachDoc.get(i).toString()+" ");
+            		}
+            	}
+	        	out.write("\r\n");
+		        out.flush();
+                line++;
+            }
+            reader.close();
+	        out.flush();
+			out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+	}
+	
+	public void fileWriteTfidfNotSparse(String filePath, String outputFilePath, ArrayList tfidf, HashMap wordsHashMap, TreeSet words) { //输出term*doc的非稀疏表示矩阵
+		ArrayList<String> fileInfo = fileRead(filePath);
+		double[][] tfidfArray = new double[words.size()][fileInfo.size()];		
+		for (int i=0; i<words.size(); i++) {
+			for (int j=0; j<fileInfo.size(); j++) {
+				tfidfArray[i][j] = 0.0; 
+			}
+		}
+		for (int i=0; i<fileInfo.size(); i++) {
+			String[] tempWord = fileInfo.get(i).split(" ");
+			ArrayList tfidfInEachDoc = (ArrayList<Double>)tfidf.get(i);
+			for (int j=0; j<tempWord.length; j++) {
+        		if (!tempWord[j].equals("")) {
+        			tfidfArray[Integer.parseInt(wordsHashMap.get(tempWord[j]).toString())-1][i] = Double.parseDouble(tfidfInEachDoc.get(j).toString());
+        		}
+        	}
+		}
+		ArrayList<String> tfidfStr = new ArrayList<String>();
+		for (int i=0; i<words.size(); i++) {
+			StringBuffer info = new StringBuffer("");
+			for (int j=0; j<fileInfo.size(); j++) {
+				info.append(String.format("%.9f", tfidfArray[i][j]));
+				info.append(" ");
+			}
+			tfidfStr.add(info.toString());
+		}
+		fileWrite(outputFilePath, tfidfStr);
+	}
+	
+	public void fileWrite(String filePath, String filterFilePath, ArrayList idf, double idfMin, double idfMax) {
+		int docNum = readLinesNumFile(filePath);
+		File file = new File(filePath);
+        BufferedReader reader = null;
+		try {
+			File writename = new File(filterFilePath); 
+	        writename.createNewFile();
+	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);
+
+	        reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            int line = 0;
+            //out.write(docNum+"\r\n");
+            while ((tempString = reader.readLine()) != null) {
+            	ArrayList idfInEachDoc = (ArrayList<Double>)idf.get(line);
+            	String[] tempWord = tempString.split(" ");
+            	boolean firstWord = true;
+            	for (int i=0; i<tempWord.length; i++) {
+            		if (!tempWord[i].equals("")) {
+            			double idfValue = Double.parseDouble(idfInEachDoc.get(i).toString());
+            			if (idfValue >= idfMin && idfValue <= idfMax) {
+            				if (firstWord) {
+            					firstWord = false;
+            				}
+            				else {
+            					out.write(" ");
+            				}
+            				out.write(tempWord[i]);
+            			}
+            		}
+            	}
+	        	out.write("\r\n");
+		        out.flush();
+                line++;
+            }
+            reader.close();
+	        out.flush();
+			out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+	}
+	
+	public boolean checkFileExist(String filePath) {
+		File writename = new File(filePath); 
+		return writename.exists();
+	}
+	
+	public Matrix readMatrixFile(String filePath, int k, int n) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            int line = 0;
+            double[][] array = new double[k][n];
+            while ((tempString = reader.readLine()) != null) {
+            	String[] strarray=tempString.split(" ");
+            	for (int i = 0; i < strarray.length; i++) {  
+        			if (strarray[i].equals("")==false){
+        				if (line>=k || i>=n) {
+        					System.out.println("Error!!! readMatrixFile is more than k*n: "+String.valueOf(k)+" "+String.valueOf(n));
+        				}
+            	    	array[line][i]=Double.parseDouble(strarray[i]);
+            		}
+        		}
+                line++;
+            }
+            Matrix X = new Matrix(array);
+            reader.close();
+            return X;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readMatrixFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;        
+	}
+	
+	public TreeSet readWordsFile(String filePath) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            TreeSet words = new TreeSet();
+            words.clear();
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	words.add(tempString);
+                line++;
+            }
+            reader.close();
+            return words;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;        
+	}
+	
+	public TreeSet readResultFile(String filePath) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            TreeSet words = new TreeSet();
+            words.clear();
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	String[] tempWord = tempString.split(" ");
+            	for (int i=0; i<tempWord.length; i++) {
+            		if (!tempWord[i].equals("")) {
+            			words.add(tempWord[i]);
+            		}
+            	}
+                line++;
+            }
+            reader.close();
+            return words;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;        
+	}
+	
+	public TreeSet readResultFileWithIntegerTerms(String filePath) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            TreeSet<Integer> words = new TreeSet<Integer>();
+            words.clear();
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	String[] tempWord = tempString.split(" ");
+            	for (int i=0; i<tempWord.length; i++) {
+            		if (!tempWord[i].equals("")) {
+            			words.add(Integer.parseInt(tempWord[i]));
+            		}
+            	}
+                line++;
+            }
+            reader.close();
+            return words;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;        
+	}
+	
+	public ArrayList<HashSet<String>> readWordSetEachDocument(String filePath) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            int line = 0;
+            ArrayList words = new ArrayList<HashSet<String>>();
+            while ((tempString = reader.readLine()) != null) {
+            	String[] tempWord = tempString.split(" ");
+            	HashSet wordSet = new HashSet<String>();
+            	for (int i=0; i<tempWord.length; i++) {
+            		if (!tempWord[i].equals("")) {
+            			wordSet.add(tempWord[i]);
+            		}
+            	}
+            	words.add(wordSet);
+                line++;
+            }
+            reader.close();
+            return words;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;        
+	}
+	
+	public int readLinesNumFile(String filePath) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+                line++;
+            }
+            reader.close();
+            return line;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsNumFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return 0;
+	}
+	
+	public ArrayList<String> fileRead(String filePath) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            ArrayList result = new ArrayList<String>();
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	result.add(tempString);
+                line++;
+            }
+            reader.close();
+            return result;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;        
+	}
+}
