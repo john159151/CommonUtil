@@ -426,4 +426,32 @@ public class FileIO {
         }
         return null;        
 	}
+	
+	public static HashMap<String, Integer> fileReadToStringIndexMap(String filePath) { //Index start from 0
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            HashMap<String, Integer> result = new HashMap<String, Integer>();
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	result.put(tempString, line);
+                line++;
+            }
+            reader.close();
+            return result;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;        
+	}
 }
