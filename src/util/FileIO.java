@@ -454,4 +454,59 @@ public class FileIO {
         }
         return null;        
 	}
+	
+	public static Matrix fileReadSparseMatrix(String filePath, int rowNum, int columnNum) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+    		Matrix X = new Matrix(rowNum, columnNum);
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	String[] cellInfo = tempString.split(" ");
+            	for (int i=0; i<cellInfo.length; i++) {
+            		if (!cellInfo[i].equals("")) {
+	            		String[] info = cellInfo[i].split(":");
+	            		X.set(line, (Integer.parseInt(info[0])-1), Double.parseDouble(info[1]));
+            		}
+            	}
+                line++;
+            }
+            reader.close();
+            return X;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! fileReadSparseMatrix error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;  
+	}
+	
+	public static void fileWriteSparseMatrix(String filePath, Matrix X) {
+		try {			
+	        File writename = new File(filePath); 
+	        writename.createNewFile();
+	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);
+	        for (int i=0; i<X.getRowDimension(); i++) {
+	        	for (int j=0; j<X.getColumnDimension(); j++) {
+	        		if (X.get(i, j) > 0.0) {
+	        			out.write((j+1)+":"+X.get(i, j)+" ");
+	        		}
+	        	}
+	        	out.write("\r\n");
+		        out.flush();
+	        }
+	        out.flush();
+			out.close();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
 }
