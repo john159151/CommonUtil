@@ -7,12 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.management.loading.MLet;
+
 /**
  * Created by jianying.lin@foxmail.com on 2016/11/07.
  */
 public class CommonOperation<T> {
 
-	/*
+	/**
 	 * Get the rank of the input List in a default descending way, index start from 1
 	 * @param value The input List
 	 * @return the rank of the input List
@@ -22,7 +24,7 @@ public class CommonOperation<T> {
 		return getRankFromListValue(value, true, 0);
 	}
 	
-	/*
+	/**
 	 * Get the rank of the input List in a ascending or descending way, index start from 1
 	 * @param value The input List
 	 * @param descendOrNot True means Descend sort, False means Ascend sort
@@ -84,4 +86,63 @@ public class CommonOperation<T> {
 		}
 		return rankList;
 	}
+	
+	/**
+	 * Get the cosine value of the input vector
+	 * @param vector1 The input vector List
+	 * @param vector2 The input vector List
+	 * @return the cosine value of the input List
+	 * @example input [1, 2, 3] and [3, 2, 1], output 0.7142857142857143
+	 */
+	public static <T extends Number> double getVectorCosineValue(List<T> vector1, List<T> vector2) {
+		if (vector1==null || vector2==null || vector1.size()!=vector2.size()) {
+			System.err.println("getVectorCosineValue error!");
+			return -1.0;
+		}
+		double cosineValue = 0.0;
+		for (int i=0; i<vector1.size(); i++) {
+			cosineValue += vector1.get(i).doubleValue() * vector2.get(i).doubleValue();
+		}
+		double mod1 = 0.0;
+		for (int i=0; i<vector1.size(); i++) {
+			mod1 += vector1.get(i).doubleValue() * vector1.get(i).doubleValue();
+		}
+		double mod2 = 0.0;
+		for (int i=0; i<vector2.size(); i++) {
+			mod2 += vector2.get(i).doubleValue() * vector2.get(i).doubleValue();
+		}
+		cosineValue = Math.sqrt(cosineValue*cosineValue / (mod1*mod2));
+		
+		return cosineValue;
+	}
+	
+	/**
+	 * Get the cosine value of the input vector
+	 * @param vector1 The input vector array
+	 * @param vector2 The input vector array
+	 * @return the cosine value of the input array
+	 * @example input [1, 2, 3] and [3, 2, 1], output 0.7142857142857143
+	 */
+	public static <T extends Number> double getVectorCosineValue(T[] vector1, T[] vector2) {
+		if (vector1==null || vector2==null || vector1.length!=vector2.length) {
+			System.err.println("getVectorCosineValue error!");
+			return -1.0;
+		}
+		double cosineValue = 0.0;
+		for (int i=0; i<vector1.length; i++) {
+			cosineValue += vector1[i].doubleValue() * vector2[i].doubleValue();
+		}
+		double mod1 = 0.0;
+		for (int i=0; i<vector1.length; i++) {
+			mod1 += vector1[i].doubleValue() * vector1[i].doubleValue();
+		}
+		double mod2 = 0.0;
+		for (int i=0; i<vector2.length; i++) {
+			mod2 += vector2[i].doubleValue() * vector2[i].doubleValue();
+		}
+		cosineValue = Math.sqrt(cosineValue*cosineValue / (mod1*mod2));
+		
+		return cosineValue;
+	}
+		
 }

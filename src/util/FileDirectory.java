@@ -1,6 +1,8 @@
 package util;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -10,7 +12,7 @@ import java.util.ArrayList;
  */
 public class FileDirectory {
 	
-	/*
+	/**
 	 * 获取文件夹下的一层文件和目录
 	 * @param folderPath
 	 * @return 文件夹下的一层文件和目录的绝对路径
@@ -29,7 +31,7 @@ public class FileDirectory {
 		return fileAndDirectoryPathList;
 	}
 	
-	/*
+	/**
 	 * 获取文件夹下的一层文件
 	 * @param folderPath
 	 * @return 文件夹下的一层文件的绝对路径
@@ -51,7 +53,7 @@ public class FileDirectory {
 		return filePathList;
 	}
 	
-	/*
+	/**
 	 * 获取文件夹下的一层目录
 	 * @param folderPath
 	 * @return 文件夹下的一层目录的绝对路径
@@ -73,7 +75,7 @@ public class FileDirectory {
 		return directoryPathList;
 	}
 	
-	/*
+	/**
 	 * 将文件夹路径与文件名拼接在一起形成文件路径，能够适应Windows和Linux的拼接
 	 * @param folder
 	 * @param fileName
@@ -84,7 +86,7 @@ public class FileDirectory {
 		return path.toString();
 	}
 	
-	/*
+	/**
 	 * 获取文件路径对应的文件名，能够适应Windows和Linux的拼接
 	 * @param path
 	 * @return fileName
@@ -92,5 +94,128 @@ public class FileDirectory {
 	public static String getFileOrFolderNameFromPath(String path) {
 		File file = new File(path);
 		return file.getName();
+	}
+	
+	/**
+	 * 移动文件
+	 * @param sourceFilePath
+	 * @param destinationFilePath
+	 */
+	public static void moveFile(String sourceFilePath, String destinationFilePath) {
+		try {
+			File file = new File(sourceFilePath);
+			File destFile = new File(destinationFilePath);
+			file.renameTo(destFile);
+		}
+		catch (Exception e) {
+			System.err.println("Move file error!");
+			e.printStackTrace();
+		}
+		/*
+		//way2
+		try {
+			File file = new File(sourceFilePath);
+			File destFile = new File(destinationFilePath);
+			Files.move(file.toPath(), destFile.toPath());
+		}
+		catch (IOException e) {
+			System.err.println("Move file error!");
+			e.printStackTrace();
+		}
+		*/
+	}
+	
+	/**
+	 * 复制文件
+	 * @param sourceFilePath
+	 * @param destinationFilePath
+	 */
+	public static void copyFile(String sourceFilePath, String destinationFilePath) {
+		try {
+			File file = new File(sourceFilePath);
+			File destFile = new File(destinationFilePath);
+			Files.copy(file.toPath(), destFile.toPath());
+		}
+		catch (Exception e) {
+			System.err.println("Copy file error!");
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 删除文件
+	 * @param path
+	 */
+	public static void deleteFile(String path) {
+		try {
+			File file = new File(path);
+			file.delete();
+		}
+		catch (Exception e) {
+			System.err.println("Delete file error!");
+			e.printStackTrace();
+		}
+	}
+	
+	/**  
+     * 删除文件夹  
+     * @param path 
+     */  
+   public static void deleteFolder(String path)  {  
+       try {  
+           deleteAllFileUnderFolder(path);
+           File file = new File(path);
+           file.delete();
+       }  
+       catch (Exception e)  {  
+           System.out.println("删除文件夹操作出错");  
+           e.printStackTrace();
+       } 
+   }  
+ 
+   /**  
+     * 删除文件夹里面的所有文件  
+     * @param path
+     */  
+   public static void deleteAllFileUnderFolder(String path)  {  
+	   File file = new File(path);
+       if (!file.exists())  {  
+           return;  
+       }  
+       if (!file.isDirectory())  {  
+           return;  
+       }
+       ArrayList<String> pathList = getFileAndDirectoryPathUnderFolder(path);
+       for (int i=0; i<pathList.size(); i++) {
+    	   File fileTemp = new File(pathList.get(i));
+    	   if (fileTemp.isFile()) {
+    		   deleteFile(pathList.get(i));
+    	   }
+    	   else if (fileTemp.isDirectory()) {
+    		   deleteFolder(pathList.get(i));
+    	   }
+       }       
+   }
+   
+
+	/**
+	 * 根据修改时间移动一个文件夹下的文件（修改时间比传入的时间点大）
+	 * @param sourceFilePath
+	 * @param destinationFilePath
+	 */
+	public static void moveFileUnderFolder(String sourceFolder, String destinationFolder, long timePoint) {
+		try {
+			ArrayList<String> filePathList = getFilePathUnderFolder(sourceFolder);
+			for (int i=0; i<filePathList.size(); i++) {
+				File fileTemp = new File(filePathList.get(i));
+				if (fileTemp.lastModified() > timePoint) {
+					moveFile(fileTemp.getAbsolutePath(), filePathJoin(destinationFolder, fileTemp.getName()));
+				}
+			}
+		}
+		catch (Exception e) {
+			System.err.println("Move file error!");
+			e.printStackTrace();
+		}
 	}
 }

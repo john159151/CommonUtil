@@ -490,7 +490,7 @@ public class FileIO {
 	}
 	
 	public static void fileWriteSparseMatrix(String filePath, Matrix X) {
-		try {			
+		try {
 	        File writename = new File(filePath); 
 	        writename.createNewFile();
 	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);
@@ -499,6 +499,71 @@ public class FileIO {
 	        		if (X.get(i, j) > 0.0) {
 	        			out.write((j+1)+":"+X.get(i, j)+" ");
 	        		}
+	        	}
+	        	out.write("\r\n");
+		        out.flush();
+	        }
+	        out.flush();
+			out.close();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+	
+	public static Matrix fileReadFullMatrix(String filePath) {
+		int rowNum = readLinesNumFile(filePath);
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+    		Matrix X = null;//new Matrix(rowNum, columnNum);
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	String[] cellInfo = tempString.split(" ");
+            	if (X == null) {
+            		int columnNum = 0;
+            		for (int i=0; i<cellInfo.length; i++) {
+                		if (!cellInfo[i].equals("")) {
+    	            		columnNum++;
+                		}
+                	}
+            		X = new Matrix(rowNum, columnNum);
+            	}
+            	for (int i=0; i<cellInfo.length; i++) {
+            		if (!cellInfo[i].equals("")) {
+	            		X.set(line, i, Double.parseDouble(cellInfo[i]));
+            		}
+            	}
+                line++;
+            }
+            reader.close();
+            return X;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! fileReadFullMatrix error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;  
+	}
+	
+	public static void fileWriteFullMatrix(String filePath, Matrix X) {
+		try {
+	        File writename = new File(filePath); 
+	        writename.createNewFile();
+	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);
+	        for (int i=0; i<X.getRowDimension(); i++) {
+	        	for (int j=0; j<X.getColumnDimension(); j++) {
+	        		if (j > 0) {
+	        			out.write(" ");
+	        		}
+	        		out.write(X.get(i, j)+"");
 	        	}
 	        	out.write("\r\n");
 		        out.flush();
