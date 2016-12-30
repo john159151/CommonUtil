@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 /**
@@ -76,6 +77,28 @@ public class FileDirectory {
 	}
 	
 	/**
+	 * 获取文件夹下的一层目录的名字
+	 * @param folderPath
+	 * @return 文件夹下的一层目录的名字
+	 */
+	public static ArrayList<String> getDirectoryNameUnderFolder(String folderPath) {
+		File folder = new File(folderPath);
+		if (!folder.isDirectory()) {
+			System.err.println("Please pass the folder path inside the 'getFileAndDirectoryPathUnderFolder' function!!!");
+			return null;
+		}
+		ArrayList<String> directoryNameList = new ArrayList<String>();
+		String[] fileList = folder.list();
+		for (int i=0; i<fileList.length; i++) {
+			File fileNow = new File(filePathJoin(folder.getAbsolutePath(), fileList[i]));
+			if (fileNow.isDirectory()) {
+				directoryNameList.add(fileNow.getName());
+			}
+		}
+		return directoryNameList;
+	}
+	
+	/**
 	 * 将文件夹路径与文件名拼接在一起形成文件路径，能够适应Windows和Linux的拼接
 	 * @param folder
 	 * @param fileName
@@ -102,6 +125,7 @@ public class FileDirectory {
 	 * @param destinationFilePath
 	 */
 	public static void moveFile(String sourceFilePath, String destinationFilePath) {
+		/*不能替换已存在的文件
 		try {
 			File file = new File(sourceFilePath);
 			File destFile = new File(destinationFilePath);
@@ -111,18 +135,23 @@ public class FileDirectory {
 			System.err.println("Move file error!");
 			e.printStackTrace();
 		}
-		/*
-		//way2
-		try {
-			File file = new File(sourceFilePath);
-			File destFile = new File(destinationFilePath);
-			Files.move(file.toPath(), destFile.toPath());
-		}
-		catch (IOException e) {
-			System.err.println("Move file error!");
-			e.printStackTrace();
-		}
 		*/
+		//way2
+		final int tryTime = 5;
+		int t = 0;
+		while (t < tryTime) {
+			try {
+				File file = new File(sourceFilePath);
+				File destFile = new File(destinationFilePath);
+				Files.move(file.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING); //替换已存在
+				break;
+			}
+			catch (IOException e) {
+				t++;
+				System.err.println("Move file error! try:"+t);
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	/**

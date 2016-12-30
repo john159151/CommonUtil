@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -573,5 +574,123 @@ public class FileIO {
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
+	}
+	
+	public static void fileWriteSparseMatrix(String filePath, double[][] X) {
+		try {
+	        File writename = new File(filePath); 
+	        writename.createNewFile();
+	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);
+	        for (int i=0; i<X.length; i++) {
+	        	for (int j=0; j<X[i].length; j++) {
+	        		if (X[i][j] > 0.0) {
+	        			out.write((j+1)+":"+X[i][j]+" ");
+	        		}
+	        	}
+	        	out.write("\r\n");
+		        out.flush();
+	        }
+	        out.flush();
+			out.close();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+	
+	public static void fileWriteFullMatrix(String filePath, double[][] X) {
+		try {
+	        File writename = new File(filePath); 
+	        writename.createNewFile();
+	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);
+	        for (int i=0; i<X.length; i++) {
+	        	for (int j=0; j<X[i].length; j++) {
+	        		if (j > 0) {
+	        			out.write(" ");
+	        		}
+	        		out.write(X[i][j]+"");
+	        	}
+	        	out.write("\r\n");
+		        out.flush();
+	        }
+	        out.flush();
+			out.close();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+	
+	public static HashMap<String, HashSet<Integer>> fileReadToStringSetMap(String filePath) {
+		return	fileReadToStringSetMap(filePath, null);
+	}
+	
+	public static HashMap<String, HashSet<Integer>> fileReadToStringSetMap(String filePath, HashSet<String> wordmap) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+    		HashMap<String, HashSet<Integer>> result = new HashMap<String, HashSet<Integer>>();
+            String tempString = null;
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	String[] info = tempString.split(" ");
+            	if (info.length > 0 && ((wordmap!=null&&wordmap.contains(info[0])) || wordmap==null)) {
+            		if (!result.containsKey(info[0])) {
+        				result.put(info[0], new HashSet<Integer>());
+        			}
+	            	for (int i=1; i<info.length; i++) {
+	            		if (info[i].length() > 0) {
+	                		result.get(info[0]).add(Integer.parseInt(info[i])); 
+	            		}
+	            	}
+            	}
+                line++;
+            }
+            reader.close();
+            return result;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;        
+	}
+	
+	public static HashSet<String> fileReadWords(String filePath) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            int line = 0;
+            HashSet<String> words = new HashSet<String>();
+            while ((tempString = reader.readLine()) != null) {
+            	String[] tempWord = tempString.split(" ");
+            	for (int i=0; i<tempWord.length; i++) {
+            		if (!tempWord[i].equals("")) {
+            			words.add(tempWord[i]);
+            		}
+            	}
+                line++;
+            }
+            reader.close();
+            return words;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;        
 	}
 }
