@@ -2,9 +2,14 @@ package util;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +24,53 @@ import Jama.Matrix;
  * Created by jianying.lin@foxmail.com on 2016/10/24.
  */
 public class FileIO {
+
+	public static ArrayList<String> fileRead(String filePath, String encoding) { //read encoding
+        BufferedReader reader = null;
+        try {
+            FileInputStream fis = new FileInputStream(filePath);
+            InputStreamReader isr = new InputStreamReader(fis, encoding);
+            reader = new BufferedReader(isr);
+            String tempString = null;
+            ArrayList result = new ArrayList<String>();
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	result.add(tempString);
+                line++;
+            }
+            reader.close();
+            return result;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;
+    }
+	
+	public static boolean fileWrite(String filePath, ArrayList info, String encoding) {
+		try {
+			FileOutputStream fos = new FileOutputStream(filePath);
+            OutputStreamWriter out = new OutputStreamWriter(fos, encoding);
+	        for (int i=0; i<info.size(); i++) {
+	        	out.write(info.get(i).toString()+"\r\n");
+	        	out.flush();
+	        }
+	        out.flush();
+			out.close();
+			return true;
+		} catch (Exception e) {
+			// TODO: handle exception
+			return false;
+		}
+	}
+	
 	public static boolean fileWrite(String filePath, Matrix X) {
 		try {			
 	        File writename = new File(filePath); 
@@ -400,6 +452,7 @@ public class FileIO {
         return 0;
 	}
 	
+	//It will have problem while reading Chinese under the utf-8 encoding!!!
 	public static ArrayList<String> fileRead(String filePath) {
 		File file = new File(filePath);
         BufferedReader reader = null;
@@ -624,10 +677,20 @@ public class FileIO {
 	}
 	
 	public static HashMap<String, HashSet<Integer>> fileReadToStringSetMap(String filePath, HashSet<String> wordmap) {
+		return fileReadToStringSetMap(filePath, wordmap, null);
+	}
+	
+	public static HashMap<String, HashSet<Integer>> fileReadToStringSetMap(String filePath, HashSet<String> wordmap, String encoding) {
 		File file = new File(filePath);
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new FileReader(file));
+        	if (encoding==null || encoding.length()==0) {
+        		reader = new BufferedReader(new FileReader(file));
+        	}
+        	else {
+	            InputStreamReader isr = new InputStreamReader(new FileInputStream(file), encoding);
+	            reader = new BufferedReader(isr);
+        	}
     		HashMap<String, HashSet<Integer>> result = new HashMap<String, HashSet<Integer>>();
             String tempString = null;
             int line = 0;
@@ -644,6 +707,64 @@ public class FileIO {
 	            	}
             	}
                 line++;
+                if (line % 5000 == 0) {
+                	System.out.println("fileReadToStringSetMap: "+line);
+                }
+            }
+            reader.close();
+            return result;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;        
+	}
+	
+	public static HashMap<String, HashSet<Integer>> fileReadToStringSetMapByOriginalCorpus(String filePath) {
+		return	fileReadToStringSetMapByOriginalCorpus(filePath, null);
+	}
+	
+	public static HashMap<String, HashSet<Integer>> fileReadToStringSetMapByOriginalCorpus(String filePath, HashSet<String> wordmap) {
+		return fileReadToStringSetMapByOriginalCorpus(filePath, wordmap, null);
+	}
+	
+	public static HashMap<String, HashSet<Integer>> fileReadToStringSetMapByOriginalCorpus(String filePath, HashSet<String> wordmap, String encoding) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+        	if (encoding==null || encoding.length()==0) {
+        		reader = new BufferedReader(new FileReader(file));
+        	}
+        	else {
+	            InputStreamReader isr = new InputStreamReader(new FileInputStream(file), encoding);
+	            reader = new BufferedReader(isr);
+        	}
+    		HashMap<String, HashSet<Integer>> result = new HashMap<String, HashSet<Integer>>();
+            String tempString = null;
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	String[] info = tempString.split(" ");
+            	if (info.length > 0) {
+            		for (int i=0; i<info.length; i++) {
+            			if ((wordmap!=null&&wordmap.contains(info[0])) || wordmap==null) {
+            				if (!result.containsKey(info[i])) {
+                				result.put(info[i], new HashSet<Integer>());
+                			}
+            				result.get(info[i]).add(line+1); //index start from 1
+            			}
+            		}
+            	}
+                line++;
+                if (line % 5000 == 0) {
+                	System.out.println("fileReadToStringSetMapByOriginalCorpus: "+line);
+                }
             }
             reader.close();
             return result;
@@ -692,5 +813,121 @@ public class FileIO {
             }
         }
         return null;        
+	}
+	
+	public static ArrayList<HashSet<String>> readFileWords(String filePath) {
+		File file = new File(filePath);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            ArrayList result = new ArrayList<HashSet<String>>();
+            int line = 0;
+            while ((tempString = reader.readLine()) != null) {
+            	String[] tempWord = tempString.split(" ");
+            	HashSet words = new HashSet<String>();
+            	for (int i=0; i<tempWord.length; i++) {
+            		if (!tempWord[i].equals("")) {
+            			words.add(tempWord[i]);
+            		}
+            	}
+            	result.add(words);
+                line++;
+            }
+            reader.close();
+            return result;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error!!! readWordsFile error!");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return null;        
+	}
+	
+	public static boolean getArff(String filePath, String relationName, ArrayList attributeName, ArrayList attributeValue, ArrayList classTag, int classNum) {
+		/* 写入Txt文件 */  
+		try {			
+	        File writename = new File(filePath); 
+	        writename.createNewFile(); // 创建新文件  
+	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);  
+	        out.write("@relation "+relationName+"\r\n\r\n");
+	        
+	        for (int i=0; i<attributeName.size(); i++) {
+	        	out.write("@attribute "+attributeName.get(i).toString()+" numeric\r\n");
+	        }
+	        if (classNum < 1) {
+	        	System.err.println("Error!!! classNum is less than 1!");
+	        	return false;
+	        }
+	        out.write("@attribute class {1");
+	        for (int i=2; i<=classNum; i++) {
+	        	out.write(", "+i);
+	        }
+	        out.write("}\r\n\r\n");
+	        
+	        out.write("@data\r\n");
+	        for (int i=0; i<attributeValue.size(); i++) {
+	        	ArrayList tempAttributeValue = (ArrayList)attributeValue.get(i);
+	        	for (int j=0; j<tempAttributeValue.size(); j++) {
+	        		double value = Double.parseDouble(tempAttributeValue.get(j).toString());
+	        		DecimalFormat df=new DecimalFormat("0.000000000");
+	        		out.write(df.format(value)+" ");
+	        	}
+	        	out.write(classTag.get(i).toString()+"\r\n");
+	        }
+	        out.flush(); // 把缓存区内容压入文件  
+			out.close(); // 最后记得关闭文件  
+			return true;
+		} catch (Exception e) {
+			// TODO: handle exception
+			return false;
+		}
+	}
+	
+	public static boolean getArff(String filePath, String relationName, ArrayList attributeName, ArrayList attributeValue, ArrayList classTag, HashSet<String> classAll) {
+		/* 写入Txt文件 */  
+		try {			
+	        File writename = new File(filePath); 
+	        writename.createNewFile(); // 创建新文件  
+	        BufferedWriter out = new BufferedWriter(new FileWriter(writename),32768);  
+	        out.write("@relation "+relationName+"\r\n\r\n");
+	        
+	        for (int i=0; i<attributeName.size(); i++) {
+	        	out.write("@attribute "+attributeName.get(i).toString()+" numeric\r\n");
+	        }
+	        if (classAll.size() < 1) {
+	        	System.err.println("Error!!! classNum is less than 1!");
+	        	return false;
+	        }
+	        Iterator<String> it = classAll.iterator();
+	        out.write("@attribute class {"+it.next());
+	        while (it.hasNext()) {
+	        	out.write(", "+it.next());
+	        }
+	        out.write("}\r\n\r\n");
+	        
+	        out.write("@data\r\n");
+	        for (int i=0; i<attributeValue.size(); i++) {
+	        	ArrayList tempAttributeValue = (ArrayList)attributeValue.get(i);
+	        	for (int j=0; j<tempAttributeValue.size(); j++) {
+	        		double value = Double.parseDouble(tempAttributeValue.get(j).toString());
+	        		DecimalFormat df=new DecimalFormat("0.000000000");
+	        		out.write(df.format(value)+" ");
+	        	}
+	        	out.write(classTag.get(i).toString()+"\r\n");
+	        }
+	        out.flush(); // 把缓存区内容压入文件  
+			out.close(); // 最后记得关闭文件  
+			return true;
+		} catch (Exception e) {
+			// TODO: handle exception
+			return false;
+		}
 	}
 }
